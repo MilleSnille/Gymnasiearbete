@@ -1,8 +1,4 @@
-lista = [
-
-]
-
-lista1 = [
+urls = [
     "https://tunebat.com/Info/Last-To-Know-Excellence/2tFux07cQF6tGg0Az2QfOB",
     "https://tunebat.com/Info/V-rlden-utanf-r-Barbados/6W8G4Lzd6C5awcAyfoOFEG",
     "https://tunebat.com/Info/Kom-och-ta-mig-Brandsta-City-Sl-ckers/22T3LCFXjOfxkiq5JgJacE",
@@ -26,10 +22,3 @@ lista1 = [
 
 ]
 
-lista2= [
-
-]
-
-lista3 = [
-
-]

@@ -3,7 +3,7 @@ import requests
 url = "https://api.firecrawl.dev/v2/scrape"
 
 payload = {
-  "url": "https://tunebat.com/Info/WAP-feat-Megan-Thee-Stallion-Cardi-B-Megan-Thee-Stallion/4Oun2ylbjFKMPTiaSbbCih",
+  "url": "https://tunebat.com/Info/Kom-och-ta-mig-Brandsta-City-Sl-ckers/22T3LCFXjOfxkiq5JgJacE",
   "onlyMainContent": True,
   "maxAge": 172800000,
   "parsers": [
