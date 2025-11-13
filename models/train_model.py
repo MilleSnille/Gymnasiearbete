@@ -1,63 +1,58 @@
-import pandas as pd 
+import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from tensorflow import keras
-from tensorflow.keras import layers   
-
+from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
 from tensorflow import keras
-import numpy as np
-from data_preprocessing import load_yearly_data, split_features_targets
+from keras.layers import Dense
+from keras.models import Sequential, load_model
 
-# Ladda in datan
-years = load_yearly_data("melodifestival.csv")
+# 1. Läs in CSV
+data = pd.read_csv("melodifestivalen.csv")
 
-# Loopa över alla år
-for i in range(len(years)):
-    print(f"\n=== Tränar modell (testar på år {i+1}) ===")
-    
-    # Dela upp tränings- och testdata
-    train_years = [years[j] for j in range(len(years)) if j != i]
-    test_year = years[i]
+# 2. Separera features och labels
+X = data[['Key', 'BPM', 'Danceability', 'Happiness', 
+          'Acousticness', 'Instrumentalness', 'Liveness', 'Speechiness']]
+y = data['Placering']
 
-    # Slå ihop träningsåren till en DataFrame
-    train_df = train_years[0]
-    for ydf in train_years[1:]:
-        train_df = train_df._append(ydf, ignore_index=True)
+# 3. Dela upp i träning och test (80-20)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
 
-    # Dela upp X/y
-    X_train, y_train = split_features_targets(train_df)
-    X_test, y_test = split_features_targets(test_year)
+# 4. Skala features
+scaler = MinMaxScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-    # Normalisera
-    from sklearn.preprocessing import MinMaxScaler
-    scaler = MinMaxScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test = scaler.transform(X_test)
+# 5. Spara scaler för senare användning
+import joblib
+joblib.dump(scaler, "scaler.save")
 
-    # Bygg modell
-    model = keras.Sequential([
-        keras.layers.Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
-        keras.layers.Dense(32, activation='relu'),
-        keras.layers.Dense(1)  # För regression
-    ])
+# 6. One-hot encode labels
+y_train_categorical = to_categorical(y_train, num_classes=3)
 
-    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
+# 7. Skapa modellen
+model = Sequential([
+    Dense(64, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+    Dense(32, activation='relu'),
+    Dense(3, activation='softmax')
+])
 
-    # Träna
-    history = model.fit(
-        X_train, y_train,
-        epochs=100,
-        batch_size=8,
-        verbose=0,  # sätt till 1 om ni vill se träningen
-        validation_split=0.2
-    )
+# 8. Kompilera modellen
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    # Spara modellen
-    model.save(f"model_year_{i+1}.h5")
+# 9. Träna modellen
+history = model.fit(
+    X_train_scaled, y_train_categorical,
+    epochs=50, batch_size=8, validation_split=0.2
+)
 
-    # Testa på det året
-    test_loss, test_mae = model.evaluate(X_test, y_test, verbose=0)
-    print(f"Testår {i+1} — MAE: {test_mae:.2f}")
+# 10. Spara modellen
+model.save("melodifestivalen_model.h5")
+print("Modellen sparad som melodifestivalen_model.h5")
 
-
+# 11. Spara testdata för test_model.py
+test_data = X_test.copy()
+test_data['Placering'] = y_test
+test_data.to_csv("test_data.csv", index=False)
+print("Testdata sparad som test_data.csv")

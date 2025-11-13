@@ -1,33 +1,35 @@
 import pandas as pd
-from tensorflow import keras
-import joblib 
-
+import joblib
 import tensorflow as tf
-import numpy as np
-from data_preprocessing import load_yearly_data, split_features_targets
-from sklearn.preprocessing import MinMaxScaler
+from tensorflow import keras
+from keras.models import load_model
+from keras.utils import to_categorical
 
-# Ladda in data
-years = load_yearly_data("melodifestival.csv")
+# 1. Läs testdata
+test_data = pd.read_csv("test_data.csv")
+X_test = test_data[['Key', 'BPM', 'Danceability', 'Happiness', 
+                    'Acousticness', 'Instrumentalness', 'Liveness', 'Speechiness']]
+y_test = test_data['Placering']
 
-# Välj vilket år du vill testa
-year_to_test = 5  # ändra detta värde!
+# 2. Ladda scaler och skala testdata
+scaler = joblib.load("scaler.save")
+X_test_scaled = scaler.transform(X_test)
 
-# Ladda modellen
-model = tf.keras.models.load_model(f"model_year_{year_to_test}.h5")
+# 3. One-hot encode labels
+y_test_categorical = to_categorical(y_test, num_classes=3)
 
-# Förbered testdata
-test_year = years[year_to_test - 1]
-X_test, y_test = split_features_targets(test_year)
+# 4. Ladda modellen
+model = load_model("melodifestivalen_model.h5")
 
-# Normalisera på nytt
-scaler = MinMaxScaler()
-X_test = scaler.fit_transform(X_test)
+# 5. Utvärdera modellen
+test_loss, test_acc = model.evaluate(X_test_scaled, y_test_categorical)
+print(f"Test Accuracy: {test_acc:.2f}")
 
-# Gör förutsägelser
-predictions = model.predict(X_test)
+# 6. Prediktioner
+predictions = model.predict(X_test_scaled)
+predicted_classes = predictions.argmax(axis=1)
 
-# Skriv ut några exempel
-print("\nExempel på förutsägelser:")
-for i in range(min(10, len(predictions))):
-    print(f"Riktig placering: {y_test[i]:.0f} | Förutsagd: {predictions[i][0]:.2f}")
+# 7. Lägg till prediktioner i testdata och spara
+test_data['Prediktion'] = predicted_classes
+test_data.to_csv("test_predictions.csv", index=False)
+print("Prediktioner sparade i test_predictions.csv")
