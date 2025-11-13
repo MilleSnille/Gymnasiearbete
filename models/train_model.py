@@ -7,7 +7,7 @@ from keras.layers import Dense
 from keras.models import Sequential, load_model
 
 # 1. Läs in CSV
-data = pd.read_csv("melodifestivalen.csv")
+data = pd.read_csv("data/melodifestivalen.csv")
 
 # 2. Separera features och labels
 X = data[['Key', 'BPM', 'Danceability', 'Happiness', 
