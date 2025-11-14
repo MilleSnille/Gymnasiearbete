@@ -5,6 +5,7 @@ import tensorflow as tf
 from tensorflow import keras
 from keras.layers import Dense
 from keras.models import Sequential, load_model
+from keras.utils import to_categorical
 
 # 1. Läs in CSV
 data = pd.read_csv("data/melodifestivalen.csv")
